@@ -14,26 +14,14 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from os import path
 from flask_login import UserMixin
-# from .common_bp import common_bp
-from common_bp import common_bp
+from .common_bp import common_bp
+# from common_bp import common_bp
 
 class Base(DeclarativeBase):
     pass
 
 DB_NAME = 'database.db'
 db = SQLAlchemy(model_class=Base)
-
-# class User(db.Model, UserMixin):
-#     id = db.Column(db.Integer, primary_key=True)
-#     email = db.Column(db.String(100), unique=True)
-#     fav_city = db.Column(db.String(100))
-#     is_subscribed = db.Column(db.Boolean, default=False)
-
-# class Subscription(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     email = db.Column(db.String(100), unique=True)
-#     city = db.Column(db.String(100))
-#     confirmed = db.Column(db.Boolean, default=False)
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
