@@ -5,31 +5,16 @@ document.addEventListener('DOMContentLoaded', function() {
     loadWeatherHistory();
 });
 
+document.getElementById('search-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        getWeather();
+    }
+});
+
 document.getElementById('search-btn').addEventListener('click', getWeather);
 document.getElementById('load-more-btn').addEventListener('click', loadMoreForecast);
 document.getElementById('current-location-btn').addEventListener('click', getGPSLocation);
 document.getElementById('subscribe-form').addEventListener('submit', subscribe);
-
-/*
-@app.route('/subscribe', methods=['POST', 'GET'])
-def subscribe():
-    """
-    Subscribe and send email confirmation.
-    """
-    email = request.json['email']
-    city = request.json['city']
-    # send email confirmation link
-    mail = Mail(app)
-    msg = Message('Weather Subscription Confirmation', recipients=[email])
-    msg.body = f"You have subscribed to weather updates for {city}.Click the link below to confirm your subscription: http://{HOST}/confirm_subscription?email={email}&city={city}"
-    # send email and check if it was sent
-    try:
-        mail.send(msg)
-    except Exception as e:
-        print(e)
-        return 'Failed to send email', 500
-    return 'Email sent', 200
-*/
 
 async function subscribe() {
     event.preventDefault();
@@ -149,7 +134,12 @@ async function getDefaultWeather() {
 async function getWeather() {
     const city = document.getElementById('search-input').value;
     city_memory = city;
-    const response = await fetch('/get_weather', {
+    if (city === '') {
+        alert('City name is required!');
+        return;
+    }
+
+    const response = await fetch('/check_location', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -157,9 +147,22 @@ async function getWeather() {
         body: JSON.stringify({ city })
     });
     const data = await response.json();
-    saveWeatherHistory(data);
+    if (data.error) {
+        alert("Invalid location!\n" + data.error.message);
+        return;
+    }
+
+    const wResponse = await fetch('/get_weather', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ city })
+    });
+    const wData = await wResponse.json();
+    saveWeatherHistory(wData);
     loadWeatherHistory();
-    displayWeather(data);
+    displayWeather(wData);
     loadForecast(city, 4);
 }
 
@@ -184,31 +187,6 @@ async function loadMoreForecast() {
     loadForecast(city, forecastCards + 4);
 }
 
-function displayWeather(data) {
-    document.getElementById('city-name').textContent = `${data.location.name} (${data.location.localtime})`;
-    document.getElementById('temperature').textContent = data.current.temp_c;
-    document.getElementById('wind-speed').textContent = data.current.wind_kph;
-    document.getElementById('humidity').textContent = data.current.humidity;
-    document.getElementById('weather-condition').textContent = data.current.condition.text;
-}
-
-function displayForecast(data) {
-    const forecastContainer = document.getElementById('forecast-container');
-    forecastContainer.innerHTML = '';
-    data.forecast.forecastday.forEach(day => {
-        const forecastCard = document.createElement('div');
-        forecastCard.className = 'forecast-card';
-        forecastCard.innerHTML = `
-            <h3>${day.date}</h3>
-            <p>Temp: ${day.day.avgtemp_c}°C</p>
-            <p>Wind: ${day.day.maxwind_kph} KPH</p>
-            <p>Humidity: ${day.day.avghumidity}%</p>
-            <p>Condition: ${day.day.condition.text}</p>
-        `;
-        forecastContainer.appendChild(forecastCard);
-    });
-}
-
 async function saveWeatherHistory(data) {
     const response = await fetch('/save_weather_history', {
         method: 'POST',
@@ -220,6 +198,36 @@ async function saveWeatherHistory(data) {
     console.log(response);
 }
 
+function displayWeather(data) {
+    document.getElementById('city-name').textContent = `${data.location.name} (${data.location.localtime})`;
+    document.getElementById('temperature').textContent = `${data.current.temp_c}°C`;
+    document.getElementById('wind-speed').textContent = `${data.current.wind_kph} KPH`;
+    document.getElementById('humidity').textContent = `${data.current.humidity}%`;
+    document.getElementById('weather-condition').textContent = data.current.condition.text;
+    document.getElementById('weather-icon').src = `https:${data.current.condition.icon}`;
+}
+
+function displayForecast(data) {
+    const forecastContainer = document.getElementById('forecast-container');
+    forecastContainer.innerHTML = '';
+    data.forecast.forecastday.forEach(day => {
+        const forecastCard = document.createElement('div');
+        forecastCard.className = 'forecast-card card mb-3';
+        forecastCard.style = "width: 18rem;";
+        forecastCard.innerHTML = `
+            <div class="card-body">
+                <h5 class="card-title">${day.date}</h5>
+                <p class="card-text"><img src="https:${day.day.condition.icon}" alt="Weather icon"></p>
+                <p class="card-text">Temp: ${day.day.avgtemp_c}°C</p>
+                <p class="card-text">Wind: ${day.day.maxwind_kph} KPH</p>
+                <p class="card-text">Humidity: ${day.day.avghumidity}%</p>
+                <p class="card-text">Condition: ${day.day.condition.text}</p>
+            </div>
+        `;
+        forecastContainer.appendChild(forecastCard);
+    });
+}
+
 async function loadWeatherHistory() {
     const response = await fetch('/get_weather_history');
     const data = await response.json();
@@ -227,13 +235,16 @@ async function loadWeatherHistory() {
     historyContainer.innerHTML = '';
     data.forEach(data => {
         const historyCard = document.createElement('div');
-        historyCard.className = 'history-card';
+        historyCard.className = 'history-card card mb-3';
+        historyCard.style = "width: 18rem;";
         historyCard.innerHTML = `
-            <h3>${data.location.name}</h3>
-            <p>Temp: ${data.current.temp_c}°C</p>
-            <p>Wind: ${data.current.wind_kph} KPH</p>
-            <p>Humidity: ${data.current.humidity}%</p>
-            <p>Condition: ${data.current.condition.text}</p>
+            <div class="card-body">
+                <h5 class="card-title">${data.location.name}</h5>
+                <p class="card-text">Temp: ${data.current.temp_c}°C</p>
+                <p class="card-text">Wind: ${data.current.wind_kph} KPH</p>
+                <p class="card-text">Humidity: ${data.current.humidity}%</p>
+                <p class="card-text">Condition: ${data.current.condition.text}</p>
+            </div>
         `;
         historyContainer.appendChild(historyCard);
     });

@@ -1,33 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Weather Dashboard{% endblock %}
+{% block content %}
+<!--<body>-->
     <div class="container">
-        <h1>Weather Dashboard</h1>
-        <div class="search-section">
-            <input type="text" id="search-input" placeholder="Eg., Seoul, New York">
-            <button id="search-btn">Search</button>
-            <button id="current-location-btn">Use Current Location (GPS)</button>
+        <div class="search-section d-flex align-items-center mb-2">
+            <input type="text" id="search-input" class="form-control" placeholder="Eg., Seoul, New York">
+            <button id="search-btn" class="btn btn-primary ml-2" style="display: inline-flex; align-items: center; justify-content: center;">
+                <img src="{{ url_for('static', filename='Explore.png') }}" alt="Search Icon" style="width: 20px; height: 20px; margin-right: 5px;">
+                Search
+            </button>
+            <button id="current-location-btn" class="btn btn-secondary btn-sm ml-2" style="display: inline-flex; align-items: center; justify-content: center;">
+                <img src="{{ url_for('static', filename='Location.png') }}" alt="Location Icon" style="width: 20px; height: 20px; margin-right: 5px;">
+                Use Current Location (GPS)
+            </button>
         </div>
         <div class="weather-info">
             <div class="current-weather">
-                <h2 id="city-name">City Name (Date)</h2>
-                <p>Temperature: <span id="temperature">--</span>°C</p>
-                <p>Wind: <span id="wind-speed">--</span> KPH</p>
-                <p>Humidity: <span id="humidity">--</span>%</p>
-                <p id="weather-condition">Condition</p>
+                <h2>Current weather</h2>
+                <p id="city-name">City Name (Date)</p>
+                <p><img src="" alt="Weather icon" id="weather-icon"></p>
+                <p><img src="{{ url_for('static', filename='Thermostat.png') }}" alt="Temperature Icon" style="width: 20px; height: 20px;"> Temperature: <span id="temperature">--</span>°C</p>
+                <p><img src="{{ url_for('static', filename='Air.png') }}" alt="Air Icon" style="width: 20px; height: 20px;"> Wind: <span id="wind-speed">--</span> KPH</p>
+                <p><img src="{{ url_for('static', filename='Humidity.png') }}" alt="Humidity Icon" style="width: 20px; height: 20px;"> Humidity: <span id="humidity">--</span>%</p>
+                <p><img src="{{ url_for('static', filename='Mix.png') }}" alt="Mix Icon" style="width: 20px; height: 20px;"> Condition: <span id="weather-condition"></span></p>
             </div>
             <div class="forecast">
                 <h2>4-Day Forecast</h2>
                 <div class="forecast-container" id="forecast-container">
 
                 </div>
-                <button id="load-more-btn">Load More</button>
+                <button id="load-more-btn" class="btn btn-info">Load More</button>
             </div>
         </div>
         <div class="history">
@@ -40,14 +42,12 @@
         <div class="subscription">
             <h2>Subscribe to Daily Weather Forecast</h2>
             <form id="subscribe-form">
-                <input type="email" id="subscribe-email" placeholder="Enter your email" required>
-                <input type="text" id="subscribe-city" placeholder="Enter city name, zip code, postcode" required>
+                <input type="email" id="subscribe-email" class="form-control mb-2" placeholder="Enter your email" required>
+                <input type="text" id="subscribe-city" class="form-control mb-2" placeholder="Enter city name, zip code, postcode" required>
                 <p class="email-message"></p>
-                <button type="submit">Subscribe</button>
+                <button type="submit" class="btn btn-success">Subscribe</button>
             </form>
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+<!-- </body> -->
+{% endblock %}

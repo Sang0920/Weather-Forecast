@@ -1,90 +1,30 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
+    font-family: 'Roboto', sans-serif;
 }
-
 .container {
-    max-width: 1200px;
-    margin: auto;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-
-h1 {
-    text-align: center;
-    color: #333;
-}
-
-.search-section {
-    display: flex;
-    justify-content: center;
+.search-section, .weather-info, .history, .subscription {
     margin-bottom: 20px;
 }
-
-.search-section input, .search-section button {
-    padding: 10px;
-    margin: 0 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.weather-info {
+.forecast-container, #history-container {
     display: flex;
-    justify-content: space-between;
     flex-wrap: wrap;
-}
-
-.current-weather, .forecast, .history, .email-section {
-    flex: 1 1 45%;
-    margin: 10px;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.current-weather h2, .forecast h2, .history h2, .email-section h2 {
-    margin-top: 0;
-}
-
-.forecast-container {
-    display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
 }
-
-.forecast-container .forecast-card {
-    width: 23%;
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: center;
+.forecast-container > div, #history-container > div {
+    flex: 0 0 48%;
+    margin-bottom: 10px;
 }
-
-.hidden {
-    display: none;
-}
-
 @media (max-width: 768px) {
-    .search-section {
-        flex-direction: column;
-    }
-
-    .current-weather, .forecast, .history, .email-section {
-        flex: 1 1 100%;
-    }
-
-    .forecast-container .forecast-card {
-        width: 48%;
+    .forecast-container > div, #history-container > div {
+        flex: 0 0 100%;
     }
 }
-
-@media (max-width: 480px) {
-    .forecast-container .forecast-card {
-        width: 100%;
-    }
+button {
+    transition: background-color 0.3s ease;
+}
+button:hover {
+    background-color: #007bff;
+    color: white;
 }

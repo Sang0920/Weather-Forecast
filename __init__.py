@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from os import path
 from flask_login import UserMixin
+from common_bp import common_bp
+
 
 class Base(DeclarativeBase):
     pass
@@ -10,22 +12,32 @@ class Base(DeclarativeBase):
 DB_NAME = 'database.db'
 db = SQLAlchemy(model_class=Base)
 
+# class User(db.Model, UserMixin):
+#     id = db.Column(db.Integer, primary_key=True)
+#     email = db.Column(db.String(100), unique=True)
+#     fav_city = db.Column(db.String(100))
+#     is_subscribed = db.Column(db.Boolean, default=False)
+
+# class Subscription(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     email = db.Column(db.String(100), unique=True)
+#     city = db.Column(db.String(100))
+#     confirmed = db.Column(db.Boolean, default=False)
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
-    fav_city = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    fav_city = db.Column(db.String(100), nullable=False)
     is_subscribed = db.Column(db.Boolean, default=False)
-
-class Subscription(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
-    city = db.Column(db.String(100))
     confirmed = db.Column(db.Boolean, default=False)
+    subscribe_token = db.Column(db.String(100), unique=True)
+    subscribe_token_expiration = db.Column(db.DateTime)
+    unsubscribe_token = db.Column(db.String(100), unique=True)
 
 def create_app():
     app = Flask(__name__)
     app.config['BASE_URL'] = 'http://api.weatherapi.com/v1'
-    app.config['HOST'] = 'localhost'
+    app.config['SERVER_NAME'] = 'localhost:5000'
     app.config['SECRET_KEY'] = 'sang0920'
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
@@ -35,6 +47,7 @@ def create_app():
     app.config['MAIL_PASSWORD'] = 'moqg tbnf cvot qihk'
     app.config['API_KEY'] = '0bbe4606d2414828af6105401242007'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    app.register_blueprint(common_bp, url_prefix='/common')
     create_database(app)
     return app
 

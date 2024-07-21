@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Daily Weather Forecast{% endblock %}
+{% block content %}
+<p>Good morning!</p>
+<p>Weather forecast for {{ city }} from 9 AM to 12 PM:</p>
+<ul>
+	{% for hour in forecast_9_to_24 %}
+	<li>{{ hour.time }}: {{ hour.temp }}°C, {{ hour.condition }}</li>
+	{% endfor %}
+</ul>
+<p>To unsubscribe from daily weather updates, <a href="{{ unsubscribe_url }}">click here</a>.</p>
+{% endblock %}
