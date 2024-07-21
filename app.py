@@ -1,15 +1,74 @@
 from datetime import datetime, timedelta
 import requests
 from flask import render_template, request, jsonify, url_for
-import __init__
+# import __init__
 import json
 from flask_mail import Mail, Message
-from __init__ import db, User
+# from __init__ import db, User
 from itsdangerous import URLSafeTimedSerializer
 from apscheduler.schedulers.background import BackgroundScheduler
 import pytz
 
-app = __init__.create_app()
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+from os import path
+from flask_login import UserMixin
+# from .common_bp import common_bp
+from common_bp import common_bp
+
+class Base(DeclarativeBase):
+    pass
+
+DB_NAME = 'database.db'
+db = SQLAlchemy(model_class=Base)
+
+# class User(db.Model, UserMixin):
+#     id = db.Column(db.Integer, primary_key=True)
+#     email = db.Column(db.String(100), unique=True)
+#     fav_city = db.Column(db.String(100))
+#     is_subscribed = db.Column(db.Boolean, default=False)
+
+# class Subscription(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     email = db.Column(db.String(100), unique=True)
+#     city = db.Column(db.String(100))
+#     confirmed = db.Column(db.Boolean, default=False)
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    fav_city = db.Column(db.String(100), nullable=False)
+    is_subscribed = db.Column(db.Boolean, default=False)
+    confirmed = db.Column(db.Boolean, default=False)
+    subscribe_token = db.Column(db.String(100), unique=True)
+    subscribe_token_expiration = db.Column(db.DateTime)
+    unsubscribe_token = db.Column(db.String(100), unique=True)
+
+def create_app():
+    app = Flask(__name__)
+    app.config['BASE_URL'] = 'http://api.weatherapi.com/v1'
+    app.config['SERVER_NAME'] = 'localhost:5000'
+    app.config['SECRET_KEY'] = 'sang0920'
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USE_SSL'] = True
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USERNAME'] = 'dts@aes.edu.sg'
+    app.config['MAIL_PASSWORD'] = 'moqg tbnf cvot qihk'
+    app.config['API_KEY'] = '0bbe4606d2414828af6105401242007'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    app.register_blueprint(common_bp, url_prefix='/common')
+    create_database(app)
+    return app
+
+def create_database(app):
+    db.init_app(app)
+    if not path.exists(DB_NAME):
+        with app.app_context():
+            db.create_all()
+
+app = create_app()
 mail = Mail(app)
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
@@ -101,95 +160,6 @@ def check_location():
     data = response.json()
     return jsonify(data)
 
-# @app.route('/subscribe', methods=['POST'])
-# def subscribe():
-#     email = request.json['email']
-#     city = request.json['city']
-
-#     existing_subscription = Subscription.query.filter_by(email=email).first()
-#     if existing_subscription:
-#         return jsonify({"message": "Already subscribed!"})
-
-#     token = serializer.dumps(email, salt='email-confirmation-salt')
-#     confirm_url = url_for('confirm_subscription', token=token, _external=True)
-    
-#     msg = Message('Weather Subscription Confirmation', recipients=[email], sender=app.config['MAIL_USERNAME'])
-#     msg.body = f"You have subscribed to weather updates for {city}.\nClick the link below to confirm your subscription:\n{confirm_url}"
-    
-#     try:
-#         mail.send(msg)
-#         new_subscription = Subscription(email=email, city=city)
-#         db.session.add(new_subscription)
-#         db.session.commit()
-#     except Exception as e:
-#         print(e)
-#         return jsonify({'error': 'Failed to send confirmation email.'}), 500
-
-#     return jsonify({'message': f'Confirmation sent to your email address: {email}'}), 200
-
-# @app.route('/confirm_subscription/<token>')
-# def confirm_subscription(token):
-#     try:
-#         email = serializer.loads(token, salt='email-confirmation-salt', max_age=3600)
-#     except:
-#         return jsonify({'message': 'The confirmation link is invalid or has expired.'}), 400
-    
-#     subscription = Subscription.query.filter_by(email=email).first()
-#     if not subscription:
-#         return jsonify({'message': 'Subscription not found.'}), 404
-    
-#     subscription.confirmed = True
-#     db.session.commit()
-    
-#     return jsonify({'message': 'Subscription confirmed!'}), 200
-
-# @app.route('/unsubscribe', methods=['POST'])
-# def unsubscribe():
-#     email = request.json['email']
-#     subscription = Subscription.query.filter_by(email=email).first()
-#     if not subscription:
-#         return jsonify({'message': 'Subscription not found.'}), 404
-    
-#     db.session.delete(subscription)
-#     db.session.commit()
-    
-#     return jsonify({'message': 'Unsubscribed successfully!'}), 200
-
-# def send_daily_forecast():
-#     print("Sending daily forecast...")
-#     with app.app_context():
-#         subscriptions = Subscription.query.filter_by(confirmed=True).all()
-#         for subscription in subscriptions:
-#             city = subscription.city
-#             email = subscription.email
-#             response = requests.get(f"{app.config['BASE_URL']}/forecast.json", params={
-#                 'key': app.config['API_KEY'],
-#                 'q': city,
-#                 'days': 1
-#             })
-#             data = response.json()
-#             forecast = data['forecast']['forecastday'][0]['hour']
-#             forecast_9_to_18 = [hour for hour in forecast if 9 <= int(hour['time'].split(' ')[1].split(':')[0]) <= 18]
-
-#             forecast_message = f"Weather forecast for {city} from 9 AM to 6 PM:\n"
-#             for hour in forecast_9_to_18:
-#                 time = hour['time'].split(' ')[1]
-#                 temp = hour['temp_c']
-#                 condition = hour['condition']['text']
-#                 forecast_message += f"{time}: {temp}°C, {condition}\n"
-            
-#             token = serializer.dumps(email, salt='unsubscribe-salt')
-#             unsubscribe_url = url_for('unsubscribe', token=token, _external=True)
-#             forecast_message += f"\nTo unsubscribe from daily weather updates, click here: {unsubscribe_url}"
-
-#             msg = Message('Daily Weather Forecast', recipients=[email], sender=app.config['MAIL_USERNAME'])
-#             msg.body = forecast_message
-
-#             try:
-#                 mail.send(msg)
-#             except Exception as e:
-#                 print(f"Failed to send forecast email to {email}: {e}")
-
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
     email = request.json['email']
@@ -251,42 +221,6 @@ def unsubscribe(token):
 
     return jsonify({'message': 'Unsubscribed successfully!'}), 200
 
-# def send_daily_forecast():
-#     print("Sending daily forecast...")
-#     with app.app_context():
-#         users = User.query.filter_by(is_subscribed=True, confirmed=True).all()
-#         print("Users count: ", len(users))
-#         for user in users:
-#             city = user.fav_city
-#             email = user.email
-#             response = requests.get(f"{app.config['BASE_URL']}/forecast.json", params={
-#                 'key': app.config['API_KEY'],
-#                 'q': city,
-#                 'days': 1
-#             })
-#             data = response.json()
-#             forecast = data['forecast']['forecastday'][0]['hour']
-#             forecast_9_to_24 = [hour for hour in forecast if 9 <= int(hour['time'].split(' ')[1].split(':')[0]) <= 24]
-
-#             forecast_message = f"Good morning!\nWeather forecast for {city} from 9 AM to 12 PM:\n"
-#             for hour in forecast_9_to_24:
-#                 time = hour['time'].split(' ')[1]
-#                 temp = hour['temp_c']
-#                 condition = hour['condition']['text']
-#                 forecast_message += f"{time}: {temp}°C, {condition}\n"
-
-#             token = user.unsubscribe_token
-#             unsubscribe_url = url_for('unsubscribe', token=token, _external=True)
-#             forecast_message += f"\nTo unsubscribe from daily weather updates, click here: {unsubscribe_url}"
-
-#             msg = Message('Daily Weather Forecast', recipients=[email], sender=app.config['MAIL_USERNAME'])
-#             msg.body = forecast_message
-
-#             try:
-#                 mail.send(msg)
-#             except Exception as e:
-#                 print(f"Failed to send forecast email to {email}: {e}")
-
 def send_daily_forecast():
     print("Sending daily forecast...")
     with app.app_context():
@@ -323,6 +257,7 @@ def send_daily_forecast():
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler(timezone=pytz.timezone('Asia/Ho_Chi_Minh'))
-    scheduler.add_job(send_daily_forecast, trigger='cron', hour=16, minute=0)
+    scheduler.add_job(send_daily_forecast, trigger='cron', hour=8, minute=0)
+    scheduler.add_job(send_daily_forecast, trigger='cron', hour=17, minute=47)
     scheduler.start()
     app.run(debug=False)
