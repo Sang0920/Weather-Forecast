@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather Dashboard</h1>
+        <div class="search-section">
+            <input type="text" id="search-input" placeholder="Eg., Seoul, New York">
+            <button id="search-btn">Search</button>
+            <button id="current-location-btn">Use Current Location (GPS)</button>
+        </div>
+        <div class="weather-info">
+            <div class="current-weather">
+                <h2 id="city-name">City Name (Date)</h2>
+                <p>Temperature: <span id="temperature">--</span>°C</p>
+                <p>Wind: <span id="wind-speed">--</span> KPH</p>
+                <p>Humidity: <span id="humidity">--</span>%</p>
+                <p id="weather-condition">Condition</p>
+            </div>
+            <div class="forecast">
+                <h2>4-Day Forecast</h2>
+                <div class="forecast-container" id="forecast-container">
+
+                </div>
+                <button id="load-more-btn">Load More</button>
+            </div>
+        </div>
+        <div class="history">
+            <h2>Weather History</h2>
+            <p>Your last 3 searched cities' weather</p>
+            <div id="history-container">
+
+            </div>
+        </div>
+        <div class="subscription">
+            <h2>Subscribe to Daily Weather Forecast</h2>
+            <form id="subscribe-form">
+                <input type="email" id="subscribe-email" placeholder="Enter your email" required>
+                <input type="text" id="subscribe-city" placeholder="Enter city name, zip code, postcode" required>
+                <p class="email-message"></p>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
