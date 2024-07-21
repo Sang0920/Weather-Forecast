@@ -36,7 +36,7 @@ class User(db.Model, UserMixin):
 def create_app():
     app = Flask(__name__)
     app.config['BASE_URL'] = 'http://api.weatherapi.com/v1'
-    app.config['SERVER_NAME'] = 'localhost:5000'
+    app.config['SERVER_NAME'] = 'weather-forecast-82fr.onrender.com'
     app.config['SECRET_KEY'] = 'sang0920'
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
