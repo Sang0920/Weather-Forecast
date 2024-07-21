@@ -1,0 +1,7 @@
+Flask
+requests
+flask_mail
+flask_sqlalchemy
+flask_login
+apscheduler
+pytz
